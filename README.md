@@ -141,7 +141,7 @@ CVE-2010-2075.
 That's not a bug so much as the expected, useful result of testing a
 recommendation engine against something real: it proved the rule set was
 incomplete, and incomplete rule sets are fixable with a YAML edit, not a
-rewrite. See [`RECONSAGE_REPORT.md`](RECONSAGE_REPORT.md) for the full
+rewrite. See [`RECONSAGE_REPORT`](RECONSAGE_REPORT.pdf) for the full
 breakdown of what was missed and why, and `reconsage/data/services.yaml` for
 the fix.
 
