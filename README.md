@@ -6,7 +6,7 @@ automatically so you can spend your time on the interesting part: actually
 investigating and exploiting.
 
 ![demo](docs/demo.gif)
-*(see [`RECONSAGE_REPORT.md`](RECONSAGE_REPORT.md) for the full report this run produced)*
+*(see [`RECONSAGE_REPORT`](RECONSAGE_REPORT.pdf) for the full report this run produced)*
 
 ---
 
