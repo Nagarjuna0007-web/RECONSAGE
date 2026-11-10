@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nmaprun scanner="nmap" args="nmap -sV -sC -oX sample_scan.xml 192.168.56.0/24">
+  <host>
+    <status state="up"/>
+    <address addr="192.168.56.105" addrtype="ipv4"/>
+    <hostnames><hostname name="metasploitable" type="PTR"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="21">
+        <state state="open"/>
+        <service name="ftp" product="vsftpd" version="2.3.4" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="22">
+        <state state="open"/>
+        <service name="ssh" product="OpenSSH" version="4.7p1" extrainfo="protocol 2.0"/>
+      </port>
+      <port protocol="tcp" portid="139">
+        <state state="open"/>
+        <service name="netbios-ssn" product="Samba" version="3.0.20" extrainfo="workgroup: WORKGROUP"/>
+      </port>
+      <port protocol="tcp" portid="445">
+        <state state="open"/>
+        <service name="netbios-ssn" product="Samba" version="3.0.20" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="3306">
+        <state state="open"/>
+        <service name="mysql" product="MySQL" version="5.0.51a" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="23">
+        <state state="open"/>
+        <service name="telnet" product="Linux telnetd" version="" extrainfo=""/>
+      </port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="192.168.56.110" addrtype="ipv4"/>
+    <hostnames><hostname name="dc01.corp.local" type="PTR"/></hostnames>
+    <ports>
+      <port protocol="tcp" portid="53">
+        <state state="open"/>
+        <service name="domain" product="Simple DNS Plus" version="" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="88">
+        <state state="open"/>
+        <service name="kerberos-sec" product="Microsoft Windows Kerberos" version="" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="389">
+        <state state="open"/>
+        <service name="ldap" product="Microsoft Windows Active Directory LDAP" version="" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="445">
+        <state state="open"/>
+        <service name="microsoft-ds" product="Windows Server 2019" version="" extrainfo=""/>
+      </port>
+      <port protocol="tcp" portid="3389">
+        <state state="open"/>
+        <service name="ms-wbt-server" product="Microsoft Terminal Services" version="" extrainfo=""/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>

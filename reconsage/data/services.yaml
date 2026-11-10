@@ -1,0 +1,241 @@
+# ReconSage service knowledge base
+#
+# Each entry maps a service to manual checks a tester should consider,
+# plus optional version-specific CVE hints and a MITRE ATT&CK technique.
+# This file is the "brain" of the tool -- extend it as you learn more.
+#
+# match: how this entry is matched against a parsed Service
+#   service_name: nmap's service-name field (e.g. "ssh", "smb")
+#   ports: fallback match by port number if nmap couldn't fingerprint the service
+#
+# cve_hints: list of {contains, cve, note} -- "contains" is matched
+#   case-insensitively against the service's product+version banner.
+
+- id: ftp
+  match:
+    service_name: ftp
+    ports: [21]
+  severity: medium
+  attack_technique: T1190
+  checks:
+    - "Try anonymous login: ftp <target>, user 'anonymous', any password"
+    - "Check for writable directories if anonymous access works"
+  cve_hints:
+    - contains: "vsftpd 2.3.4"
+      cve: CVE-2011-2523
+      note: "Known backdoored vsftpd build -- check for the smiley-face backdoor on port 6200"
+    - contains: "ProFTPD 1.3.3"
+      cve: CVE-2010-4221
+      note: "ProFTPD 1.3.3 vulnerable to a remote backdoor via mod_copy abuse history"
+
+- id: ssh
+  match:
+    service_name: ssh
+    ports: [22]
+  severity: low
+  attack_technique: T1110
+  checks:
+    - "Confirm auth methods offered: ssh -v <target>"
+    - "Try credential spraying only with explicit authorization and a small, known wordlist"
+    - "Check for outdated OpenSSH versions with known user-enumeration bugs"
+  cve_hints:
+    - contains: "OpenSSH 7.2"
+      cve: CVE-2016-6210
+      note: "User enumeration via timing difference in password auth"
+
+- id: telnet
+  match:
+    service_name: telnet
+    ports: [23]
+  severity: high
+  attack_technique: T1040
+  checks:
+    - "Telnet is cleartext by design -- flag as a finding on its own"
+    - "Try default credentials for the device/OS if identifiable from the banner"
+
+- id: smtp
+  match:
+    service_name: smtp
+    ports: [25, 587]
+  severity: low
+  attack_technique: T1589
+  checks:
+    - "Enumerate valid users: smtp-user-enum, or VRFY/EXPN/RCPT TO if the server allows it"
+    - "Check for open relay misconfiguration"
+
+- id: dns
+  match:
+    service_name: domain
+    ports: [53]
+  severity: low
+  attack_technique: T1590
+  checks:
+    - "Try a zone transfer: dig axfr @<target> <domain>"
+    - "Enumerate subdomains if this is an internet-facing resolver"
+
+- id: http
+  match:
+    service_name: http
+    ports: [80, 8080, 8000]
+  severity: medium
+  attack_technique: T1190
+  checks:
+    - "Run directory/content discovery (gobuster, ffuf) against the webroot"
+    - "Check for default credentials on any login panel"
+    - "Fingerprint the stack (whatweb/wappalyzer) and check for known CVEs by version"
+
+- id: https
+  match:
+    service_name: https
+    ports: [443, 8443]
+  severity: medium
+  attack_technique: T1190
+  checks:
+    - "Check TLS config and cert details (testssl.sh, sslscan)"
+    - "Run directory/content discovery as with plain HTTP"
+    - "Non-standard HTTPS port is itself worth noting -- see pattern findings"
+
+- id: pop3
+  match:
+    service_name: pop3
+    ports: [110, 995]
+  severity: low
+  attack_technique: T1110
+  checks:
+    - "Check if plaintext auth is allowed (no STARTTLS enforcement)"
+    - "Credential spray candidate if usernames are known"
+
+- id: rpcbind
+  match:
+    service_name: rpcbind
+    ports: [111]
+  severity: low
+  attack_technique: T1590
+  checks:
+    - "Enumerate registered RPC services: rpcinfo -p <target>"
+
+- id: imap
+  match:
+    service_name: imap
+    ports: [143, 993]
+  severity: low
+  attack_technique: T1110
+  checks:
+    - "Check if plaintext auth is allowed"
+    - "Credential spray candidate if usernames are known"
+
+- id: snmp
+  match:
+    service_name: snmp
+    ports: [161]
+  severity: medium
+  attack_technique: T1590
+  checks:
+    - "Try default community strings: public, private"
+    - "If readable, walk the MIB tree: snmpwalk -c public -v1 <target>"
+
+- id: ldap
+  match:
+    service_name: ldap
+    ports: [389, 636]
+  severity: medium
+  attack_technique: T1087
+  checks:
+    - "Try an anonymous bind: ldapsearch -x -H ldap://<target> -b '' -s base"
+    - "If this is Active Directory, see pattern findings for DC detection"
+
+- id: smb
+  match:
+    service_name: [netbios-ssn, microsoft-ds]
+    ports: [139, 445]
+  severity: high
+  attack_technique: T1210
+  checks:
+    - "Check for a null/anonymous session: smbclient -L //<target> -N"
+    - "Run enum4linux or enum4linux-ng for share/user enumeration"
+    - "Check SMB signing status -- unsigned SMB enables relay attacks"
+  cve_hints:
+    - contains: "Samba 3.0.20"
+      cve: CVE-2007-2447
+      note: "usermap_script remote command execution"
+    - contains: "Windows 7"
+      cve: MS17-010
+      note: "Check for EternalBlue if patch level is unknown"
+
+- id: mysql
+  match:
+    service_name: mysql
+    ports: [3306]
+  severity: medium
+  attack_technique: T1110
+  checks:
+    - "Try default/weak creds: root with blank password, root:root"
+    - "Check if remote root login is allowed at all"
+
+- id: mssql
+  match:
+    service_name: ms-sql-s
+    ports: [1433]
+  severity: medium
+  attack_technique: T1110
+  checks:
+    - "Try default sa credentials if present"
+    - "If access gained, check for xp_cmdshell being enabled"
+
+- id: rdp
+  match:
+    service_name: ms-wbt-server
+    ports: [3389]
+  severity: medium
+  attack_technique: T1110
+  checks:
+    - "Check if Network Level Authentication (NLA) is enforced"
+    - "RDP is a strong password-spray candidate -- only with explicit authorization"
+
+- id: vnc
+  match:
+    service_name: vnc
+    ports: [5900]
+  severity: medium
+  attack_technique: T1110
+  checks:
+    - "Check if a password is set at all -- many VNC installs run with none"
+
+- id: winrm
+  match:
+    service_name: wsman
+    ports: [5985, 5986]
+  severity: medium
+  attack_technique: T1021
+  checks:
+    - "If credentials are already known, try evil-winrm for a shell"
+    - "Check whether this host allows remote management from untrusted hosts"
+
+- id: redis
+  match:
+    service_name: redis
+    ports: [6379]
+  severity: high
+  attack_technique: T1190
+  checks:
+    - "Check for unauthenticated access: redis-cli -h <target> ping"
+    - "Unauthenticated Redis can often be leveraged for file write / RCE"
+
+- id: kerberos
+  match:
+    service_name: kerberos-sec
+    ports: [88]
+  severity: medium
+  attack_technique: T1558
+  checks:
+    - "If usernames are known, try AS-REP roasting for accounts with pre-auth disabled"
+    - "See pattern findings for Domain Controller detection"
+
+- id: elasticsearch
+  match:
+    service_name: elasticsearch
+    ports: [9200]
+  severity: medium
+  attack_technique: T1190
+  checks:
+    - "Check for unauthenticated API access: curl http://<target>:9200/_cat/indices"

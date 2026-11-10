@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=65"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reconsage"
+version = "0.1.0"
+description = "Turns nmap scan results into a prioritized, correlated recon report for pentesting."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+reconsage = "reconsage.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["reconsage*"]
+
+[tool.setuptools.package-data]
+reconsage = ["data/*.yaml"]

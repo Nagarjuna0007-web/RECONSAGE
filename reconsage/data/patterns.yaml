@@ -1,0 +1,73 @@
+# ReconSage pattern rules
+#
+# These don't look at one port at a time -- they look at the WHOLE host's
+# open services together and flag combinations that mean something bigger
+# than the sum of the individual findings. This is the "correlate like an
+# operator" layer.
+#
+# match.all_of: list of nmap service_name values that must ALL be present
+#   on the host for this pattern to fire.
+
+- id: likely_domain_controller
+  title: "Likely Active Directory Domain Controller"
+  severity: high
+  attack_technique: T1482
+  match:
+    all_of: [kerberos-sec, ldap, netbios-ssn, domain]
+  detail: >
+    This host exposes Kerberos (88), LDAP (389), SMB (445) and DNS (53)
+    together -- the classic Domain Controller fingerprint. Treat this as
+    a high-value target: prioritize AD enumeration (BloodHound, rpcclient,
+    ldapsearch) over individual service exploitation.
+
+- id: likely_domain_controller_alt
+  title: "Likely Active Directory Domain Controller"
+  severity: high
+  attack_technique: T1482
+  match:
+    all_of: [kerberos-sec, ldap, microsoft-ds]
+  detail: >
+    This host exposes Kerberos (88), LDAP (389) and SMB (microsoft-ds/445)
+    together -- the classic Domain Controller fingerprint. Prioritize AD
+    enumeration (BloodHound, rpcclient, ldapsearch) over individual
+    service exploitation.
+
+- id: windows_file_and_remote_mgmt
+  title: "Windows host with both SMB and remote management exposed"
+  severity: medium
+  attack_technique: T1021
+  match:
+    any_of_groups:
+      - [netbios-ssn, microsoft-ds]
+      - [ms-wbt-server, wsman]
+  detail: >
+    SMB alongside RDP/WinRM suggests a standard Windows host reachable
+    for both file access and remote administration. If credentials are
+    obtained elsewhere on the network, this is a strong lateral-movement
+    target.
+
+- id: legacy_cleartext_cluster
+  title: "Multiple cleartext/legacy protocols exposed"
+  severity: high
+  attack_technique: T1040
+  match:
+    any_n_of:
+      n: 2
+      services: [telnet, ftp, pop3, imap]
+  detail: >
+    This host exposes two or more legacy cleartext protocols at once.
+    That's usually a sign of an old or neglected system -- worth
+    prioritizing, and worth flagging as a finding by itself even before
+    any individual exploit is found (cleartext credentials in transit).
+
+- id: database_directly_exposed
+  title: "Database service reachable without an application in front of it"
+  severity: high
+  attack_technique: T1190
+  match:
+    any_of: [mysql, ms-sql-s, redis, elasticsearch]
+  detail: >
+    A database/datastore port is open and reachable directly. In a real
+    environment these are normally firewalled off from anything but an
+    application server -- direct exposure is itself worth flagging,
+    independent of whatever auth the service turns out to have.
